@@ -1,6 +1,7 @@
 class window.Scene
   constructor: ->
     @scene = new THREE.Scene()
+    @frameID = null
 
     @worldSize = 15
 
@@ -10,6 +11,7 @@ class window.Scene
 
     @mouse = new THREE.Vector2()
     @intersected = null
+    @intersectedFace = null
     @raycaster = new THREE.Raycaster()
 
     @renderer = new THREE.WebGLRenderer()
@@ -22,17 +24,14 @@ class window.Scene
     @jumping = false
     @jumpFramesLeft = 0
 
-    @geometry = new THREE.BoxGeometry(1, 1, 1)
-
-    # Set up 31x31x31 world.
+    # Set up world.
     @cubes = {}
     for x in [-@worldSize..@worldSize]
       @cubes[x] = {}
-      # -(@worldSize * 2)
-      for y in [-1..0]
-        @cubes[x][y] = {}
-        for z in [-@worldSize..@worldSize]
-          @addCube(x, y, z)
+      @cubes[x][0] = {}
+      for z in [-@worldSize..@worldSize]
+        loc = { x: x, y: 0, z: z }
+        @cubes[x][0][z] = new Cube(@scene, CubeTypes.CONCRETE, loc)
 
     # Bind movement events
     $(window).on 'keydown', (event) =>
@@ -121,40 +120,43 @@ class window.Scene
       @mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
     $(window).on 'click', (event) =>
+      event.preventDefault()
+      console.log event.which
       return unless @intersected
-      pos = @intersected.position
-      cube = @cubes[pos.x][pos.y][pos.z]
+      x = @intersected.position.x
+      y = @intersected.position.y
+      z = @intersected.position.z
 
-      @cubes[pos.x][pos.y + 1] ?= {}
-      @addCube(pos.x, pos.y + 1, pos.z)
+      switch @intersectedFace
+        when FaceDir.WEST then x++
+        when FaceDir.EAST then x--
+        when FaceDir.TOP then y++
+        when FaceDir.SOUTH then z--
+
+      @cubes[x][y] ?= {}
+      loc = { x: x, y: y, z: z }
+      @cubes[x][y][z] = new Cube(@scene, CubeTypes.DIRT, loc)
 
     # Initiate movement loop.
     setTimeout(@move, 25)  
-
-  addCube: (x, y, z) =>
-    cube = new THREE.Mesh(@geometry, Materials.DIRT)
-    @scene.add(cube)
-    cube.translateX(x)
-    cube.translateY(y)
-    cube.translateZ(z)
-    @cubes[x][y][z] =
-      mesh: cube
-      solid: true
 
   render: =>
     @raycaster.setFromCamera(@mouse, @camera)
     intersects = @raycaster.intersectObjects(@scene.children)
 
     if intersects.length > 0
-      unless @intersected == intersects[0].object
-        @intersected.material = Materials.DIRT if @intersected
-        @intersected = intersects[0].object
-        @intersected.material = Materials.LIGHTDIRT
+      intersectObj = intersects[0].object
+      intersectFace = Math.floor(intersects[0].faceIndex / 2)
+      unless @intersected == intersectObj && @intersectedFace == intersectFace
+        @intersected.cube.unhighlight() if @intersected
+        @intersected = intersectObj
+        @intersectedFace = intersectFace
+        @intersected.cube.highlight(@intersectedFace)
     else if @intersected
-      @intersected.material = Materials.DIRT
+      @intersected.cube.unhighlight()
       @intersected = null
 
-    requestAnimationFrame(@render)
+    @frameID = requestAnimationFrame(@render)
     @renderer.render(@scene, @camera)
 
   move: =>
@@ -206,7 +208,7 @@ class window.Scene
     unless @jumping
       loc = @currentLocation()
       loc.y = Math.max(loc.y - 1, -@worldSize)
-      unless @isSolid(loc)
+      unless @cubeAt(loc)
         @camera.position.y -= jumpStep
 
     setTimeout(@move, 25)
@@ -237,38 +239,8 @@ class window.Scene
     }
 
   isBlocked: (loc) ->
-    @isSolid(loc)# || @isSolid(x: loc.x, y: loc.y - 1, z: loc.z)
+    @cubeAt(loc)
 
-  isSolid: (loc) ->
+  cubeAt: (loc) ->
     loc = @histLocation(loc)
-    if @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && 
-    @cubes[loc.x][loc.y][loc.z] != undefined
-      @cubes[loc.x][loc.y][loc.z].solid
-
-# Directions Enum for movement
-Dir =
-  NONE: 0
-  N: 1
-  NE: 2
-  E: 3
-  SE: 4
-  S: 5
-  SW: 6
-  W: 7
-  NW: 8
-
-# Keys Enum for detection
-Keys =
-  LEFT: 65
-  UP: 87
-  RIGHT: 68
-  DOWN: 83
-  SPACE: 32
-
-Textures =
-  DIRT: THREE.ImageUtils.loadTexture('textures/dirt.png')
-  LIGHTDIRT: THREE.ImageUtils.loadTexture('textures/lightdirt.png')
-
-Materials =
-  DIRT: new THREE.MeshBasicMaterial(map: Textures.DIRT, side: THREE.DoubleSide)
-  LIGHTDIRT: new THREE.MeshBasicMaterial(map: Textures.LIGHTDIRT, side: THREE.DoubleSide)
+    @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && @cubes[loc.x][loc.y][loc.z] != undefined

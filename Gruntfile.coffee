@@ -6,6 +6,8 @@ module.exports = (grunt) ->
     coffee:
       compile:
         files:
+          '.tmp/enums.js': 'coffee/enums.coffee'
+          '.tmp/cube.js': 'coffee/cube.coffee'
           '.tmp/scene.js': 'coffee/scene.coffee'
           '.tmp/init.js': 'coffee/init.coffee'
 
@@ -15,6 +17,8 @@ module.exports = (grunt) ->
         src: [
           'bower_components/threejs/build/three.min.js'
           'bower_components/jquery/dist/jquery.min.js'
+          '.tmp/enums.js'
+          '.tmp/cube.js'
           '.tmp/scene.js'
           '.tmp/init.js'
         ]
@@ -26,7 +30,7 @@ module.exports = (grunt) ->
     # Recompile whenever CoffeeScript is updated.
     watch:
       scripts:
-        files: ['coffee/scene.coffee', 'coffee/init.coffee']
+        files: ['coffee/scene.coffee', 'coffee/cube.coffee', 'coffee/enums.coffee', 'coffee/init.coffee']
         tasks: ['default']
 
   grunt.loadNpmTasks 'grunt-contrib-coffee'
