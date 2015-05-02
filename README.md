@@ -16,8 +16,7 @@ Currently under development and not yet functional.
 
 * W, A, S, D: Move
 * Space: Jump
-* Right-click: Place new block
-* Click and hold: Delete block under cursor
+* Click: Place new block
 
 ## Developing
 

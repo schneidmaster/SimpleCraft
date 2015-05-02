@@ -5,8 +5,8 @@ class window.Scene
     @worldSize = 15
 
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    @camera.position.set(0, 0, 0)
-    @camera.lookAt(@scene.position)
+    @camera.position.set(0, 2, 0)
+    @camera.lookAt(x: 0, y: -2, z: 7)
 
     @mouse = new THREE.Vector2()
     @intersected = null
@@ -22,23 +22,17 @@ class window.Scene
     @jumping = false
     @jumpFramesLeft = 0
 
-    geometry = new THREE.BoxGeometry(1, 1, 1)
+    @geometry = new THREE.BoxGeometry(1, 1, 1)
 
     # Set up 31x31x31 world.
     @cubes = {}
     for x in [-@worldSize..@worldSize]
       @cubes[x] = {}
-      for y in [-(@worldSize * 2 + 3)..-2]
+      # -(@worldSize * 2)
+      for y in [-1..0]
         @cubes[x][y] = {}
         for z in [-@worldSize..@worldSize]
-          cube = new THREE.Mesh(geometry, Materials.DIRT)
-          @scene.add(cube)
-          cube.translateX(x)
-          cube.translateY(y)
-          cube.translateZ(z)
-          @cubes[x][y][z] =
-            mesh: cube
-            solid: true
+          @addCube(x, y, z)
 
     # Bind movement events
     $(window).on 'keydown', (event) =>
@@ -128,9 +122,24 @@ class window.Scene
 
     $(window).on 'click', (event) =>
       return unless @intersected
+      pos = @intersected.position
+      cube = @cubes[pos.x][pos.y][pos.z]
+
+      @cubes[pos.x][pos.y + 1] ?= {}
+      @addCube(pos.x, pos.y + 1, pos.z)
 
     # Initiate movement loop.
     setTimeout(@move, 25)  
+
+  addCube: (x, y, z) =>
+    cube = new THREE.Mesh(@geometry, Materials.DIRT)
+    @scene.add(cube)
+    cube.translateX(x)
+    cube.translateY(y)
+    cube.translateZ(z)
+    @cubes[x][y][z] =
+      mesh: cube
+      solid: true
 
   render: =>
     @raycaster.setFromCamera(@mouse, @camera)
@@ -154,22 +163,38 @@ class window.Scene
     jumpStep = step / 2
 
     switch @direction
-      when Dir.N then @camera.position.z = Math.max(@camera.position.z - step, -@worldSize)
-      when Dir.NW
-        @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
-        @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
-      when Dir.E then @camera.position.x = Math.min(@camera.position.x + step, @worldSize)
+      when Dir.S
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - step)
+          @camera.position.z = Math.max(@camera.position.z - step, -@worldSize)
       when Dir.SE
-        @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
-        @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
-      when Dir.S then @camera.position.z = Math.min(@camera.position.z + step, @worldSize)
-      when Dir.SW
-        @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
-        @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
-      when Dir.W then @camera.position.x = Math.max(@camera.position.x - step, -@worldSize)
+        unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
+          @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
+      when Dir.W
+        unless @isBlocked(x: @camera.position.x + step, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.min(@camera.position.x + step, @worldSize)
+      when Dir.NW
+        unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
+          @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
+      when Dir.N
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + step)
+          @camera.position.z = Math.min(@camera.position.z + step, @worldSize)
       when Dir.NE
-        @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
-        @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
+        unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
+          @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
+      when Dir.E
+        unless @isBlocked(x: @camera.position.x - step, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.max(@camera.position.x - step, -@worldSize)
+      when Dir.SW
+        unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
+          @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
+        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
+          @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
 
     # If jumping, move up a little and decrement frames.
     if @jumping
@@ -180,37 +205,45 @@ class window.Scene
     # If not jumping, check for gravity
     unless @jumping
       loc = @currentLocation()
-      loc.y = Math.max(loc.y - 2, -@worldSize)
+      loc.y = Math.max(loc.y - 1, -@worldSize)
       unless @isSolid(loc)
         @camera.position.y -= jumpStep
 
     setTimeout(@move, 25)
 
+  histLocation: (loc) ->
+    loc.x =
+      if loc.x < 0
+        Math.ceil(loc.x)
+      else
+        Math.floor(loc.x)
+    loc.y =
+      if loc.y < 0
+        Math.ceil(loc.y)
+      else
+        Math.floor(loc.y)
+    loc.z =
+      if loc.z < 0
+        Math.ceil(loc.z)
+      else
+        Math.floor(loc.z)
+    loc
+
   currentLocation: ->
-    x =
-      if @camera.position.x > 0
-        Math.ceil(@camera.position.x)
-      else
-        Math.floor(@camera.position.x)
-    y =
-      if @camera.position.y > 0
-        Math.ceil(@camera.position.y)
-      else
-        Math.floor(@camera.position.y)
-    z =
-      if @camera.position.z > 0
-        Math.ceil(@camera.position.z)
-      else
-        Math.floor(@camera.position.z)
     {
-      x: x
-      y: y
-      z: z
+      x: @camera.position.x
+      y: @camera.position.y
+      z: @camera.position.z
     }
 
+  isBlocked: (loc) ->
+    @isSolid(loc)# || @isSolid(x: loc.x, y: loc.y - 1, z: loc.z)
+
   isSolid: (loc) ->
-    @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && 
-    @cubes[loc.x][loc.y][loc.z] != undefined && @cubes[loc.x][loc.y][loc.z].solid
+    loc = @histLocation(loc)
+    if @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && 
+    @cubes[loc.x][loc.y][loc.z] != undefined
+      @cubes[loc.x][loc.y][loc.z].solid
 
 # Directions Enum for movement
 Dir =
