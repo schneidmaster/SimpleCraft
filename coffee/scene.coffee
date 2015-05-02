@@ -214,29 +214,18 @@ class window.Scene
     # If not jumping, check for gravity
     unless @jumping
       loc = @currentLocation()
-      loc.y = Math.max(loc.y - 1, -@worldSize)
+      loc.y = loc.y - 2
       unless @cubeAt(loc)
         @camera.position.y -= jumpStep
 
     setTimeout(@move, 25)
 
   histLocation: (loc) ->
-    loc.x =
-      if loc.x < 0
-        Math.ceil(loc.x)
-      else
-        Math.floor(loc.x)
-    loc.y =
-      if loc.y < 0
-        Math.ceil(loc.y)
-      else
-        Math.floor(loc.y)
-    loc.z =
-      if loc.z < 0
-        Math.ceil(loc.z)
-      else
-        Math.floor(loc.z)
-    loc
+    {
+      x: Math.round(loc.x)
+      y: Math.round(loc.y)
+      z: Math.round(loc.z)
+    }
 
   currentLocation: ->
     {
@@ -246,7 +235,7 @@ class window.Scene
     }
 
   isBlocked: (loc) ->
-    @cubeAt(loc)
+    @cubeAt(loc) || @cubeAt(x: loc.x, y: loc.y - 1, z: loc.z)
 
   cubeAt: (loc) ->
     loc = @histLocation(loc)
