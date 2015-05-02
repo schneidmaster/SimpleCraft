@@ -1,11 +1,16 @@
 class window.Scene
   constructor: ->
     @scene = new THREE.Scene()
+
     @worldSize = 15
 
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @camera.position.set(0, 0, 0)
     @camera.lookAt(@scene.position)
+
+    @mouse = new THREE.Vector2()
+    @intersected = null
+    @raycaster = new THREE.Raycaster()
 
     @renderer = new THREE.WebGLRenderer()
     @renderer.setSize(window.innerWidth, window.innerHeight)
@@ -18,10 +23,6 @@ class window.Scene
     @jumpFramesLeft = 0
 
     geometry = new THREE.BoxGeometry(1, 1, 1)
-    material = new THREE.MeshBasicMaterial(
-      map: THREE.ImageUtils.loadTexture('textures/dirt.png')
-      side: THREE.DoubleSide
-    )
 
     # Set up 31x31x31 world.
     @cubes = {}
@@ -30,7 +31,7 @@ class window.Scene
       for y in [-(@worldSize * 2 + 3)..-2]
         @cubes[x][y] = {}
         for z in [-@worldSize..@worldSize]
-          cube = new THREE.Mesh(geometry, material)
+          cube = new THREE.Mesh(geometry, Materials.DIRT)
           @scene.add(cube)
           cube.translateX(x)
           cube.translateY(y)
@@ -118,11 +119,32 @@ class window.Scene
             else @direction
         else @direction
 
+    # Bind mouse move/click
+    $(window).on 'mousemove', (event) =>
+      event.preventDefault()
 
+      @mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      @mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
+    $(window).on 'click', (event) =>
+      return unless @intersected
+
+    # Initiate movement loop.
     setTimeout(@move, 25)  
 
   render: =>
+    @raycaster.setFromCamera(@mouse, @camera)
+    intersects = @raycaster.intersectObjects(@scene.children)
+
+    if intersects.length > 0
+      unless @intersected == intersects[0].object
+        @intersected.material = Materials.DIRT if @intersected
+        @intersected = intersects[0].object
+        @intersected.material = Materials.LIGHTDIRT
+    else if @intersected
+      @intersected.material = Materials.DIRT
+      @intersected = null
+
     requestAnimationFrame(@render)
     @renderer.render(@scene, @camera)
 
@@ -204,8 +226,16 @@ Dir =
 
 # Keys Enum for detection
 Keys =
-  LEFT: 37
-  UP: 38
-  RIGHT: 39
-  DOWN: 40
+  LEFT: 65
+  UP: 87
+  RIGHT: 68
+  DOWN: 83
   SPACE: 32
+
+Textures =
+  DIRT: THREE.ImageUtils.loadTexture('textures/dirt.png')
+  LIGHTDIRT: THREE.ImageUtils.loadTexture('textures/lightdirt.png')
+
+Materials =
+  DIRT: new THREE.MeshBasicMaterial(map: Textures.DIRT, side: THREE.DoubleSide)
+  LIGHTDIRT: new THREE.MeshBasicMaterial(map: Textures.LIGHTDIRT, side: THREE.DoubleSide)
