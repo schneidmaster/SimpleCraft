@@ -18,3 +18,13 @@ Currently under development and not yet functional.
 * Space: Jump
 * Click: Place new block
 * Click and hold: Delete block under cursor
+
+## Developing
+
+Same steps as under Usage, but run `grunt watch` instead of `grunt` - this will monitor the files and recompile CoffeeScript/rebuild the assets whenever you save a file.
+
+This is a class project, not a true open source project - I probably won't accept non-trivial pull requests. If you want to do something with it feel free to fork.
+
+## License
+
+MIT
