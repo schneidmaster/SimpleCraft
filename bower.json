@@ -1,0 +1,19 @@
+{
+  "name": "lab5",
+  "version": "1.0.0",
+  "authors": [
+    "Zach Schneider <schneidmaster@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "threejs": "*",
+    "jquery": "~2.1.4"
+  }
+}

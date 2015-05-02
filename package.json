@@ -1,0 +1,20 @@
+{
+  "name": "SimpleCraft",
+  "version": "0.0.1",
+  "description": "Toy version of Minecraft for SIU CS485, Spring 2015",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-coffee": "^0.13.0",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-watch": "^0.6.1",
+    "http-server": "^0.8.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zach Schneider",
+  "license": "MIT"
+}
