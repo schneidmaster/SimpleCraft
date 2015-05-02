@@ -28,3 +28,7 @@ This is a class project, not a true open source project - I probably won't accep
 ## License
 
 MIT
+
+## References/Credits
+
+* [three.js FirstPersonControls](https://threejsdoc.appspot.com/doc/three.js/src.source/extras/controls/FirstPersonControls.js.html)

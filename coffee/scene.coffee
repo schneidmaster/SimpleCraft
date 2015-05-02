@@ -7,12 +7,22 @@ class window.Scene
 
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @camera.position.set(0, 2, 0)
-    @camera.lookAt(x: 0, y: -2, z: 7)
+
+    @lat = 0
+    @lon = 0
+    @phi = 0
+    @theta = 0
 
     @mouse = new THREE.Vector2()
     @intersected = null
     @intersectedFace = null
     @raycaster = new THREE.Raycaster()
+
+    @push =
+      left: false
+      right: false
+      up: false
+      down: false
 
     @renderer = new THREE.WebGLRenderer()
     @renderer.setSize(window.innerWidth, window.innerHeight)
@@ -119,6 +129,11 @@ class window.Scene
       @mouse.x = (event.clientX / window.innerWidth) * 2 - 1
       @mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
+      @push.left = event.clientX < (window.innerWidth * 0.3)
+      @push.right = event.clientX > (window.innerWidth * 0.7)
+      @push.up = event.clientY < (window.innerHeight * 0.3)
+      @push.down = event.clientY > (window.innerHeight * 0.7)
+
     $(window).on 'click', (event) =>
       return unless @intersected
       if event.shiftKey
@@ -171,39 +186,48 @@ class window.Scene
     diagStep = step / Math.sqrt(2)
     jumpStep = step / 2
 
+    posY = @camera.position.y
+
     switch @direction
       when Dir.S
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - step)
-          @camera.position.z = Math.max(@camera.position.z - step, -@worldSize)
+          @camera.translateZ(step)
       when Dir.SE
         unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
+          @camera.translateX(diagStep)
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
-          @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
+          @camera.translateZ(diagStep)
       when Dir.W
         unless @isBlocked(x: @camera.position.x + step, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.min(@camera.position.x + step, @worldSize)
+          @camera.translateX(-step)
       when Dir.NW
         unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
+          @camera.translateX(-diagStep)
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
-          @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
+          @camera.translateZ(-diagStep)
       when Dir.N
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + step)
-          @camera.position.z = Math.min(@camera.position.z + step, @worldSize)
+          @camera.translateZ(-step)
       when Dir.NE
         unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.max(@camera.position.x - diagStep, -@worldSize)
+          @camera.translateX(diagStep)
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
-          @camera.position.z = Math.min(@camera.position.z + diagStep, @worldSize)
+          @camera.translateZ(-diagStep)
       when Dir.E
         unless @isBlocked(x: @camera.position.x - step, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.max(@camera.position.x - step, -@worldSize)
+          @camera.translateX(step)
       when Dir.SW
         unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
+          @camera.translateX(-diagStep)
         unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
-          @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
+          @camera.translateZ(diagStep)
+
+    # Don't let translations move up/down or go off the map
+    @camera.position.x = Math.min(@camera.position.x, @worldSize)
+    @camera.position.x = Math.max(@camera.position.x, -@worldSize)
+    @camera.position.y = posY
+    @camera.position.z = Math.min(@camera.position.z, @worldSize)
+    @camera.position.z = Math.max(@camera.position.z, -@worldSize)
 
     # If jumping, move up a little and decrement frames.
     if @jumping
@@ -217,6 +241,28 @@ class window.Scene
       loc.y = loc.y - 2
       unless @cubeAt(loc)
         @camera.position.y -= jumpStep
+
+    # Push camera if mouse near screen edge
+    if @push.left
+      @lon -= 5
+    if @push.right
+      @lon += 5
+    if @push.up
+      @lat += 3
+    if @push.down
+      @lat -= 3
+
+    # Update camera lookat
+    @lat = Math.max(-85, Math.min(85, @lat))
+    @phi = (90 - @lat) * Math.PI / 180
+    @theta = @lon * Math.PI / 180
+
+    targetPosition = new THREE.Vector3(0, 0, 0)
+    targetPosition.x = @camera.position.x + 100 * Math.sin(@phi) * Math.cos(@theta)
+    targetPosition.y = @camera.position.y + 100 * Math.cos(@phi)
+    targetPosition.z = @camera.position.z + 100 * Math.sin(@phi) * Math.sin(@theta)
+
+    @camera.lookAt(targetPosition)
 
     setTimeout(@move, 25)
 
