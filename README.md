@@ -17,6 +17,7 @@ Currently under development and not yet functional.
 * W, A, S, D: Move
 * Space: Jump
 * Click: Place new block
+* Shift+Click: Destroy block (only dirt can be destroyed)
 
 ## Developing
 

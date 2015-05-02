@@ -120,22 +120,29 @@ class window.Scene
       @mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
     $(window).on 'click', (event) =>
-      event.preventDefault()
-      console.log event.which
       return unless @intersected
-      x = @intersected.position.x
-      y = @intersected.position.y
-      z = @intersected.position.z
+      if event.shiftKey
+        if @intersected.cube.isDirt()
+          x = @intersected.position.x
+          y = @intersected.position.y
+          z = @intersected.position.z
+          @intersected.cube.destroy()
+          @cubes[x][y][z] = null
 
-      switch @intersectedFace
-        when FaceDir.WEST then x++
-        when FaceDir.EAST then x--
-        when FaceDir.TOP then y++
-        when FaceDir.SOUTH then z--
+      else
+        x = @intersected.position.x
+        y = @intersected.position.y
+        z = @intersected.position.z
 
-      @cubes[x][y] ?= {}
-      loc = { x: x, y: y, z: z }
-      @cubes[x][y][z] = new Cube(@scene, CubeTypes.DIRT, loc)
+        switch @intersectedFace
+          when FaceDir.WEST then x++
+          when FaceDir.EAST then x--
+          when FaceDir.TOP then y++
+          when FaceDir.SOUTH then z--
+
+        @cubes[x][y] ?= {}
+        loc = { x: x, y: y, z: z }
+        @cubes[x][y][z] = new Cube(@scene, CubeTypes.DIRT, loc)
 
     # Initiate movement loop.
     setTimeout(@move, 25)  
@@ -243,4 +250,4 @@ class window.Scene
 
   cubeAt: (loc) ->
     loc = @histLocation(loc)
-    @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && @cubes[loc.x][loc.y][loc.z] != undefined
+    @cubes[loc.x] && @cubes[loc.x][loc.y] && @cubes[loc.x][loc.y][loc.z]
