@@ -12,6 +12,8 @@ Toy version of Minecraft written in [three.js](http://threejs.org/) for SIU CS48
 4. `node node_modules/http-server/bin/http-server`
 5. Visit [http://localhost:8080](http://localhost:8080)
 
+If you use Firefox, you can skip steps 4 and 5 and just open up `index.html` in your browser. Chrome's same-origin policy requires you to start a server to load the texture files.
+
 ## Controls
 
 * Mouse: Move camera

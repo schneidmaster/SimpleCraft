@@ -15,8 +15,8 @@ module.exports = (grunt) ->
     concat:
       dist:
         src: [
-          'bower_components/threejs/build/three.min.js'
-          'bower_components/jquery/dist/jquery.min.js'
+          'bower_components/threejs/build/three.js'
+          'bower_components/jquery/dist/jquery.js'
           '.tmp/enums.js'
           '.tmp/cube.js'
           '.tmp/scene.js'
