@@ -14,6 +14,8 @@ class window.Scene
     document.body.appendChild(@renderer.domElement)
 
     @direction = Dir.NONE
+    @jumping = false
+    @jumpFramesLeft = 0
 
     geometry = new THREE.BoxGeometry(1, 1, 1)
     material = new THREE.MeshBasicMaterial(
@@ -22,18 +24,20 @@ class window.Scene
     )
 
     # Set up 31x31x31 world.
-    @cubes = []
+    @cubes = {}
     for x in [-@worldSize..@worldSize]
-      @cubes[x] = []
+      @cubes[x] = {}
       for y in [-(@worldSize * 2 + 3)..-2]
-        @cubes[x][y] = []
+        @cubes[x][y] = {}
         for z in [-@worldSize..@worldSize]
           cube = new THREE.Mesh(geometry, material)
           @scene.add(cube)
           cube.translateX(x)
           cube.translateY(y)
           cube.translateZ(z)
-          @cubes[x][y][z] = cube
+          @cubes[x][y][z] =
+            mesh: cube
+            solid: true
 
     # Bind movement events
     $(window).on 'keydown', (event) =>
@@ -75,6 +79,14 @@ class window.Scene
             when @direction is Dir.NW then Dir.W
             when @direction is Dir.W then Dir.SW
             else @direction
+        when event.which is Keys.SPACE
+          # Indicate we are jumping
+          unless @jumping
+            @jumping = true
+            @jumpFramesLeft = 8
+
+          # Keep moving same XZ direction
+          @direction
         else @direction
 
     $(window).on 'keyup', (event) =>
@@ -106,6 +118,8 @@ class window.Scene
             else @direction
         else @direction
 
+
+
     setTimeout(@move, 25)  
 
   render: =>
@@ -115,6 +129,8 @@ class window.Scene
   move: =>
     step = 0.25
     diagStep = step / Math.sqrt(2)
+    jumpStep = step / 2
+
     switch @direction
       when Dir.N then @camera.position.z = Math.max(@camera.position.z - step, -@worldSize)
       when Dir.NW
@@ -132,7 +148,47 @@ class window.Scene
       when Dir.NE
         @camera.position.x = Math.min(@camera.position.x + diagStep, @worldSize)
         @camera.position.z = Math.max(@camera.position.z - diagStep, -@worldSize)
-    setTimeout(@move, 25)  
+
+    # If jumping, move up a little and decrement frames.
+    if @jumping
+      @camera.position.y += jumpStep
+      @jumpFramesLeft--
+      @jumping = (@jumpFramesLeft > 0)
+
+    # If not jumping, check for gravity
+    unless @jumping
+      loc = @currentLocation()
+      loc.y = Math.max(loc.y - 2, -@worldSize)
+      unless @isSolid(loc)
+        @camera.position.y -= jumpStep
+
+    setTimeout(@move, 25)
+
+  currentLocation: ->
+    x =
+      if @camera.position.x > 0
+        Math.ceil(@camera.position.x)
+      else
+        Math.floor(@camera.position.x)
+    y =
+      if @camera.position.y > 0
+        Math.ceil(@camera.position.y)
+      else
+        Math.floor(@camera.position.y)
+    z =
+      if @camera.position.z > 0
+        Math.ceil(@camera.position.z)
+      else
+        Math.floor(@camera.position.z)
+    {
+      x: x
+      y: y
+      z: z
+    }
+
+  isSolid: (loc) ->
+    @cubes[loc.x] != undefined && @cubes[loc.x][loc.y] != undefined && 
+    @cubes[loc.x][loc.y][loc.z] != undefined && @cubes[loc.x][loc.y][loc.z].solid
 
 # Directions Enum for movement
 Dir =
