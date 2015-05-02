@@ -1,8 +1,6 @@
 # SimpleCraft
 
-Toy version of Minecraft written in three.js for SIU CS485 Computer Graphics, Spring 2015.
-
-Currently under development and not yet functional.
+Toy version of Minecraft written in [three.js](http://threejs.org/) for SIU CS485 Computer Graphics, Spring 2015.
 
 ![Screenshot](https://cloud.githubusercontent.com/assets/1896112/7443007/1c96c6cc-f0f1-11e4-9f67-9e5ab7860193.png)
 
@@ -16,6 +14,7 @@ Currently under development and not yet functional.
 
 ## Controls
 
+* Mouse: Move camera
 * W, A, S, D: Move
 * Space: Jump
 * Click: Place new block

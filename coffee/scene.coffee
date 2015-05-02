@@ -131,8 +131,8 @@ class window.Scene
 
       @push.left = event.clientX < (window.innerWidth * 0.3)
       @push.right = event.clientX > (window.innerWidth * 0.7)
-      @push.up = event.clientY < (window.innerHeight * 0.3)
-      @push.down = event.clientY > (window.innerHeight * 0.7)
+      @push.up = event.clientY < (window.innerHeight * 0.2)
+      @push.down = event.clientY > (window.innerHeight * 0.8)
 
     $(window).on 'click', (event) =>
       return unless @intersected
