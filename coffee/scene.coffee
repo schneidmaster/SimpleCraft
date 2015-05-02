@@ -24,7 +24,7 @@ class window.Scene
       up: false
       down: false
 
-    @renderer = new THREE.WebGLRenderer()
+    @renderer = new THREE.WebGLRenderer(precision: 'lowp')
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @renderer.setClearColor(0x7EC0EE, 1)
 
