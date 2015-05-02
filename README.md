@@ -4,6 +4,8 @@ Toy version of Minecraft written in three.js for SIU CS485 Computer Graphics, Sp
 
 Currently under development and not yet functional.
 
+![Screenshot](https://cloud.githubusercontent.com/assets/1896112/7443007/1c96c6cc-f0f1-11e4-9f67-9e5ab7860193.png)
+
 ## Usage
 
 1. `git clone git@github.com:schneidmaster/SimpleCraft.git`
