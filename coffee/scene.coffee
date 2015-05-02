@@ -181,53 +181,54 @@ class window.Scene
     @frameID = requestAnimationFrame(@render)
     @renderer.render(@scene, @camera)
 
+  translateCamera: (distance, isX) ->
+    # Try the movement and revert if it would move us into a block.
+    x = @camera.position.x
+    y = @camera.position.y
+    z = @camera.position.z
+
+    if isX
+      @camera.translateX(distance)
+    else
+      @camera.translateZ(distance)
+
+    # Revert if hitting a block.
+    if @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z)
+      @camera.position.set(x, y, z)
+    else
+      # Don't let translations move up/down or go off the map
+      @camera.position.x = Math.min(@camera.position.x, @worldSize)
+      @camera.position.x = Math.max(@camera.position.x, -@worldSize)
+      @camera.position.y = y
+      @camera.position.z = Math.min(@camera.position.z, @worldSize)
+      @camera.position.z = Math.max(@camera.position.z, -@worldSize)
+
   move: =>
     step = 0.25
     diagStep = step / Math.sqrt(2)
     jumpStep = step / 2
 
-    posY = @camera.position.y
-
     switch @direction
       when Dir.S
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - step)
-          @camera.translateZ(step)
+        @translateCamera(step, false)
       when Dir.SE
-        unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(diagStep)
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
-          @camera.translateZ(diagStep)
+        @translateCamera(diagStep, true)
+        @translateCamera(diagStep, false)
       when Dir.W
-        unless @isBlocked(x: @camera.position.x + step, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(-step)
+        @translateCamera(-step, true)
       when Dir.NW
-        unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(-diagStep)
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
-          @camera.translateZ(-diagStep)
+        @translateCamera(-diagStep, true)
+        @translateCamera(-diagStep, false)
       when Dir.N
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + step)
-          @camera.translateZ(-step)
+        @translateCamera(-step, false)
       when Dir.NE
-        unless @isBlocked(x: @camera.position.x - diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(diagStep)
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z + diagStep)
-          @camera.translateZ(-diagStep)
+        @translateCamera(diagStep, true)
+        @translateCamera(-diagStep, false)
       when Dir.E
-        unless @isBlocked(x: @camera.position.x - step, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(step)
+        @translateCamera(step, true)
       when Dir.SW
-        unless @isBlocked(x: @camera.position.x + diagStep, y: @camera.position.y, z: @camera.position.z)
-          @camera.translateX(-diagStep)
-        unless @isBlocked(x: @camera.position.x, y: @camera.position.y, z: @camera.position.z - diagStep)
-          @camera.translateZ(diagStep)
-
-    # Don't let translations move up/down or go off the map
-    @camera.position.x = Math.min(@camera.position.x, @worldSize)
-    @camera.position.x = Math.max(@camera.position.x, -@worldSize)
-    @camera.position.y = posY
-    @camera.position.z = Math.min(@camera.position.z, @worldSize)
-    @camera.position.z = Math.max(@camera.position.z, -@worldSize)
+        @translateCamera(-diagStep, true)
+        @translateCamera(diagStep, false)
 
     # If jumping, move up a little and decrement frames.
     if @jumping
