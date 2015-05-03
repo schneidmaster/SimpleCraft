@@ -12,6 +12,11 @@
     "test",
     "tests"
   ],
+  "homepage": "https://github.com/schneidmaster/SimpleCraft",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/schneidmaster/SimpleCraft.git"
+  },
   "dependencies": {
     "threejs": "*",
     "jquery": "~2.1.4"

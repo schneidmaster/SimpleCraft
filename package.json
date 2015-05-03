@@ -2,6 +2,7 @@
   "name": "SimpleCraft",
   "version": "0.0.1",
   "description": "Toy version of Minecraft for SIU CS485, Spring 2015",
+  "homepage": "https://github.com/schneidmaster/SimpleCraft",
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
@@ -15,6 +16,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/schneidmaster/SimpleCraft.git"
   },
   "author": "Zach Schneider",
   "license": "MIT"
