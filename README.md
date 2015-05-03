@@ -7,7 +7,7 @@ Toy version of Minecraft written in [three.js](http://threejs.org/) for SIU CS48
 ## Usage
 
 1. `git clone git@github.com:schneidmaster/SimpleCraft.git`
-2. `npm install` and `bower install`
+2. `npm install`
 3. `grunt`
 4. `node node_modules/http-server/bin/http-server`
 5. Visit [http://localhost:8080](http://localhost:8080)
@@ -24,7 +24,7 @@ If you use Firefox, you can skip steps 4 and 5 and just open up `index.html` in 
 
 ## Developing
 
-Same steps as under Usage, but run `grunt watch` instead of `grunt` - this will monitor the files and recompile CoffeeScript/rebuild the assets whenever you save a file.
+Same steps as under Usage, but after running `grunt` run `grunt watch` - this will monitor the files and recompile CoffeeScript/rebuild the assets whenever you save a file.
 
 This is a class project, not a true open source project - I probably won't accept non-trivial pull requests. If you want to do something with it feel free to fork.
 

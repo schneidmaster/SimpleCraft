@@ -2,6 +2,12 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: '<json:package.json>'
 
+    bower:
+      install:
+        options:
+          targetDir: 'bower_components'
+
+
     # Compile CoffeeScript to JavaScript.
     coffee:
       compile:
@@ -33,8 +39,9 @@ module.exports = (grunt) ->
         files: ['coffee/scene.coffee', 'coffee/cube.coffee', 'coffee/enums.coffee', 'coffee/init.coffee']
         tasks: ['default']
 
+  grunt.loadNpmTasks 'grunt-bower-task'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-watch'
-  grunt.registerTask 'default', ['coffee', 'concat', 'clean']
+  grunt.registerTask 'default', ['bower', 'coffee', 'concat', 'clean']
